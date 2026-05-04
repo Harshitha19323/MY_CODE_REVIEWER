@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>AI Code Reviewer</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0f0f0f;
+      color: #e0e0e0;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+      min-height: 100vh;
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 10px;
+      color: #7c6fff;
+    }
+
+    p.subtitle {
+      color: #888;
+      margin-bottom: 30px;
+    }
+
+    textarea {
+      width: 100%;
+      max-width: 800px;
+      height: 220px;
+      background: #1a1a1a;
+      color: #e0e0e0;
+      border: 1px solid #333;
+      border-radius: 10px;
+      padding: 16px;
+      font-size: 14px;
+      font-family: monospace;
+      resize: vertical;
+      outline: none;
+    }
+
+    button {
+      margin-top: 16px;
+      padding: 12px 32px;
+      background: #7c6fff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    button:hover { background: #5a4be0; }
+    button:disabled { background: #444; cursor: not-allowed; }
+
+    #result {
+      margin-top: 30px;
+      width: 100%;
+      max-width: 800px;
+      display: none;
+    }
+
+    .card {
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .card h2 {
+      font-size: 1rem;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .issues h2 { color: #ff6b6b; }
+    .suggestions h2 { color: #ffd93d; }
+    .explanation h2 { color: #6bcb77; }
+
+    ul { padding-left: 20px; }
+    ul li { margin-bottom: 8px; line-height: 1.6; }
+
+    #loading {
+      margin-top: 20px;
+      color: #888;
+      display: none;
+    }
+
+    #error {
+      margin-top: 20px;
+      color: #ff6b6b;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🧠 AI Code Reviewer</h1>
+  <p class="subtitle">Paste your code below and get instant feedback</p>
+
+  <textarea id="codeInput" placeholder="Paste your code here..."></textarea>
+  <button id="reviewBtn" onclick="reviewCode()">Review Code</button>
+
+  <p id="loading">⏳ Analyzing your code...</p>
+  <p id="error"></p>
+
+  <div id="result">
+    <div class="card issues">
+      <h2>⚠️ Issues</h2>
+      <ul id="issuesList"></ul>
+    </div>
+    <div class="card suggestions">
+      <h2>💡 Suggestions</h2>
+      <ul id="suggestionsList"></ul>
+    </div>
+    <div class="card explanation">
+      <h2>📖 Explanation</h2>
+      <p id="explanationText"></p>
+    </div>
+  </div>
+
+  <script>
+    async function reviewCode() {
+      const code = document.getElementById("codeInput").value.trim();
+      const btn = document.getElementById("reviewBtn");
+      const loading = document.getElementById("loading");
+      const error = document.getElementById("error");
+      const result = document.getElementById("result");
+
+      if (!code) {
+        alert("Please paste some code first!");
+        return;
+      }
+
+      // Reset UI
+      btn.disabled = true;
+      loading.style.display = "block";
+      error.style.display = "none";
+      result.style.display = "none";
+
+      try {
+        const response = await fetch("http://localhost:7915/review", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code })
+        });
+
+        const data = await response.json();
+
+        // Populate results
+        document.getElementById("issuesList").innerHTML =
+          data.issues.map(i => `<li>${i}</li>`).join("");
+
+        document.getElementById("suggestionsList").innerHTML =
+          data.suggestions.map(s => `<li>${s}</li>`).join("");
+
+        document.getElementById("explanationText").textContent = data.explanation;
+
+        result.style.display = "block";
+
+      } catch (err) {
+        error.textContent = "❌ Error: Could not connect to server. Make sure backend is running.";
+        error.style.display = "block";
+      } finally {
+        btn.disabled = false;
+        loading.style.display = "none";
+      }
+    }
+  </script>
+
+</body>
+</html>
