@@ -146,7 +146,7 @@
       result.style.display = "none";
 
       try {
-        const response = await fetch("http://localhost:7915/review", {
+        const response = await fetch("https://my-code-reviewer-1.onrender.com/review", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ code })

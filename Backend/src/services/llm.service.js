@@ -10,7 +10,7 @@ export const analyzeCode = async (code) => {
   const prompt = reviewPrompt(code);
 
   const response = await client.chat.completions.create({
-    model: "llama-3.3-70b-versatile",  // ✅ FIXED
+    model: "llama-3.3-70b-versatile",
     messages: [
       { role: "user", content: prompt }
     ],
